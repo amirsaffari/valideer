@@ -5,6 +5,7 @@ import collections
 import json
 import re
 import unittest
+
 import valideer as V
 from valideer.compat import long, unicode, xrange, string_types, int_types
 
@@ -955,6 +956,24 @@ class TestValidator(unittest.TestCase):
                     if error:
                         error_repr = ex.to_string(error_value_repr)
                         self.assertEqual(error_repr, error, "Actual error: %r" % error_repr)
+
+    def test_score_validity(self):
+        validator = self.parse({"foo": "number", "bar": {"a": "string", "b": "string"}})
+        obj = {"foo": 5, "bar": {"a": "hello", "b": 4}}
+        result = {
+            "score": 0.75,
+            "field_scores": {
+                "foo": 1.0,
+                "bar": {
+                    "score": 0.5,
+                    "field_scores": {
+                        "a": 1.0,
+                        "b": 0.0
+                    }
+                }
+            }
+        }
+        self.assertEqual(validator.score_validity(obj), result)
 
 
 class TestValidatorModuleParse(TestValidator):
